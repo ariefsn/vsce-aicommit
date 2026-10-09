@@ -1,17 +1,26 @@
+import { stripAttribution } from './attribution';
+
 const PREAMBLES = [
 	/^here(?:'s| is) (?:the |a )?(?:suggested |proposed )?commit message:?\s*/i,
 	/^(?:suggested |proposed )?commit message:?\s*/i,
 	/^sure[,!.]?\s*/i,
 ];
 
-/** Cleans model output before it goes into the commit box (FR-15). */
+/**
+ * Cleans model output before it goes into the commit box (FR-15), including the
+ * trailers and credits the model added of its own accord (FR-9a).
+ */
 export function normalize(raw: string): string {
 	let text = raw.replace(/\r\n/g, '\n').trim();
 
-	text = stripCodeFence(text);
-
-	for (const preamble of PREAMBLES) {
-		text = text.replace(preamble, '');
+	// A preamble hides the fence from the fence stripper and a fence hides the
+	// preamble from the preamble strippers, so run both until nothing changes.
+	for (let previous = ''; previous !== text; ) {
+		previous = text;
+		text = stripCodeFence(text.trim());
+		for (const preamble of PREAMBLES) {
+			text = text.replace(preamble, '');
+		}
 	}
 
 	text = stripWrappingQuotes(text.trim());
@@ -22,7 +31,9 @@ export function normalize(raw: string): string {
 		.join('\n')
 		.trim();
 
-	return stripPostamble(unwrap(text));
+	// Before unwrap: "🤖 Generated with ..." starts no block of its own, so once
+	// unwrap has run it is already folded onto the trailer above it.
+	return stripPostamble(unwrap(stripAttribution(text)));
 }
 
 const LIST_OR_HEADING = /^(?:[-*+]\s|\d+[.)]\s|#|>)/;
@@ -116,9 +127,15 @@ function stripPostamble(text: string): string {
 	return text;
 }
 
+const LEADING_FENCE = /^```[^\n]*\n([\s\S]*?)\n?[^\S\n]*```[^\S\n]*(?=\n|$)/;
+
+/**
+ * Models fence their answer -- sometimes the whole message, sometimes only the
+ * subject with the bullets left outside. Unwrap a fence that opens the response
+ * and keep what follows it; a fence further down belongs to the body.
+ */
 function stripCodeFence(text: string): string {
-	const fenced = /^```[^\n]*\n([\s\S]*?)\n?```$/.exec(text);
-	return fenced ? fenced[1] : text;
+	return text.replace(LEADING_FENCE, '$1');
 }
 
 function stripWrappingQuotes(text: string): string {

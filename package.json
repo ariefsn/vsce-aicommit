@@ -3,7 +3,7 @@
   "displayName": "Komit",
   "description": "Generate commit messages and PR descriptions from your changes, using any AI provider.",
   "icon": "assets/icon.png",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "publisher": "ariefsn",
   "license": "MIT",
   "engines": {
