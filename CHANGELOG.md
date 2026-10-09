@@ -1,5 +1,10 @@
 # Change Log
 
+## [0.5.1]
+
+- Strip the trailers and credits a model signs its own work with — `Co-authored-by:`, `Signed-off-by:`, and the "Generated with" line the CLI providers append out of habit. `komit.signature` is the only source of trailers, and it is applied after generation so a configured one still lands
+- Keep those footers out of the PR prompt as well. The branch's commits are shown to the model as the style to imitate, and they were being sent with whatever attribution they already carried, so the model copied it into the description
+
 ## [0.5.0]
 
 - Ask which repository to describe when a workspace holds more than one, instead of silently taking the first. VS Code does not let an extension read which Source Control section has focus, so the picker is the only honest answer for a Command Palette invocation

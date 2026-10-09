@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { stripAttribution } from './attribution';
 import { limits } from './config';
 import { KomitError } from './errors';
 import { getGitAPI } from './git/api';
@@ -82,7 +83,13 @@ export async function generatePr(context: vscode.ExtensionContext, rootUri: vsco
 				? `${branch.diff}\n\n[Diff truncated. Rely on the file list above for overall scope.]`
 				: branch.diff,
 			stat: branch.stat || '(no file summary available)',
-			commits: branch.commits.map(c => `- ${c.replace(/\n+/g, '\n  ')}`).join('\n'),
+			// Shown as the style to imitate, so old attribution footers have to go
+			// before the model reads them as part of the house style.
+			commits: branch.commits
+				.map(c => stripAttribution(c).trim())
+				.filter(Boolean)
+				.map(c => `- ${c.replace(/\n+/g, '\n  ')}`)
+				.join('\n'),
 			recentCommits: '',
 			branch: branch.branch || '(unknown)',
 			base,

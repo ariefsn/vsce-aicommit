@@ -158,6 +158,8 @@ Add trailers with **Komit: Edit Signature**, which includes an option that reads
 ]
 ```
 
+This setting is the only source of trailers. Anything the model signs its own work with — a `Co-authored-by:` line, a `Signed-off-by:`, or a "Generated with" credit, which the CLI providers add out of habit — is stripped from commit messages and PR descriptions alike.
+
 They get appended after generation, so the text is always exact and the model never has a chance to paraphrase it. A trailer whose variables resolve to nothing, like `Refs: {{ticket}}` on a branch with no ticket, gets dropped rather than committed half-empty. This is independent of git's own `git.alwaysSignOff`.
 
 ### Team conventions
